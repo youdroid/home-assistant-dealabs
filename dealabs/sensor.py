@@ -10,6 +10,7 @@ import xml.etree.ElementTree as ET
 from homeassistant.const import CONF_TOKEN
 
 _LOGGER = logging.getLogger(__name__)
+
 ATTR_TITLE: "Title"
 ATTR_CATEGORY: "Category"
 ATTR_MERCHANT: "Mercahnt"
@@ -31,7 +32,9 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
 
 
 def setup_platform(hass, config, add_entities, discovery_info=None):
-    add_entities(DealabsSensor(config.get(CONF_TOKEN)))
+    d = DealabsSensor(config.get(CONF_TOKEN))
+    d.update()
+    add_entities([d])
 
 
 class DealabsSensor(Entity):
@@ -60,19 +63,19 @@ class DealabsSensor(Entity):
     @property
     def icon(self):
         """Return the icon to use in the frontend."""
-        return "mdi:github-circle"
+        return "mdi:cart-plus"
 
     @property
     def device_state_attributes(self):
         """Return the state attributes."""
         attrs = {
-            ATTR_TITLE: self.title,
-            ATTR_CATEGORY: self.category,
-            ATTR_MERCHANT: self.merchant,
-            ATTR_PRICE: self.price,
-            ATTR_DESCRIPTION: self.description,
-            ATTR_LINK: self.link,
-            ATTR_PUBLICATION_DAT: self.pubDate
+            "Title": self.title,
+            "Category": self.category,
+            "Merchant": self.merchant,
+            "Price": self.price,
+            "Description": self.description,
+            "Link": self.link,
+            "Date of publication": self.pubDate
         }
         return attrs
 
@@ -85,9 +88,12 @@ class DealabsSensor(Entity):
             self.category = child.find('category').text
             self.merchant = child.find('{http://www.pepper.com/rss}merchant').attrib.get('name')
             self.price = child.find('{http://www.pepper.com/rss}merchant').attrib.get('price')
-            self.title = child.find('title').text
+            self.title = self.extractTitle(child.find('title').text)
             self.description = child.find('description').text
             self.link = child.find('link').text
             self.pubDate = child.find('pubDate').text
             nb += 1
         self._state = nb
+
+    def extractTitle(self,str):
+        return str.split('<strong>')[0]
