@@ -2,6 +2,7 @@
 import logging
 
 import requests
+import json
 import voluptuous as vol
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity import Entity
@@ -39,14 +40,8 @@ class DealabsSensor(Entity):
     """Representation of a Sensor."""
     def __init__(self, token):
         self._state = None
-        self.category = None
-        self.merchant = None
-        self.price = None
-        self.title = None
-        self.description = None
-        self.link = None
-        self.pubDate = None
         self.token = token
+        self.data = []
 
     @property
     def name(self):
@@ -67,31 +62,38 @@ class DealabsSensor(Entity):
     def device_state_attributes(self):
         """Return the state attributes."""
         attrs = {
-            "Title": self.title,
-            "Category": self.category,
-            "Merchant": self.merchant,
-            "Price": self.price,
-            "Description": self.description,
-            "Link": self.link,
-            "Date of publication": self.pubDate
+            "data": json.dumps([ob.__dict__ for ob in self.data])
         }
         return attrs
 
     def update(self):
+        _LOGGER.error("updatte")
         join_url = URL + self.token;
         rqt = requests.request(method='GET', url=join_url, headers=headers).text.encode('utf8')
         tree = ET.fromstring(rqt)
+        deals = []
         nb = 0
         for child in tree.findall('./channel/item'):
-            self.category = child.find('category').text
-            self.merchant = child.find('{http://www.pepper.com/rss}merchant').attrib.get('name')
-            self.price = child.find('{http://www.pepper.com/rss}merchant').attrib.get('price')
-            self.title = self.extractTitle(child.find('title').text)
-            self.description = child.find('description').text
-            self.link = child.find('link').text
-            self.pubDate = child.find('pubDate').text
+            d = Deal(child.find('category').text, child.find('{http://www.pepper.com/rss}merchant').attrib.get('name'),
+                     child.find('{http://www.pepper.com/rss}merchant').attrib.get('price'),
+                     self.extractTitle(child.find('title').text),
+                     child.find('description').text, child.find('link').text, child.find('pubDate').text)
+            deals.append(d)
             nb += 1
+        self.data = deals
         self._state = nb
 
     def extractTitle(self,str):
         return str.split('<strong>')[0]
+
+class Deal(Entity):
+    """Representation of a Sensor."""
+
+    def __init__(self, category, merchant, price, title, description, link, pubDate):
+        self.category = category
+        self.merchant = merchant
+        self.price = price
+        self.title = title
+        self.description = description
+        self.link = link
+        self.pubDate = pubDate
