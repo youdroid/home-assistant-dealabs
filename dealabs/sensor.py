@@ -32,9 +32,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
 
 
 def setup_platform(hass, config, add_entities, discovery_info=None):
-    d = DealabsSensor(config.get(CONF_TOKEN))
-    d.update()
-    add_entities([d])
+    add_entities([DealabsSensor(config.get(CONF_TOKEN))])
 
 
 class DealabsSensor(Entity):
