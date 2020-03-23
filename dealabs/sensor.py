@@ -38,10 +38,12 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
 
 class DealabsSensor(Entity):
     """Representation of a Sensor."""
+
     def __init__(self, token):
         self._state = None
         self.token = token
-        self.data = []
+        self.data = {}
+        self.attr = {}
 
     @property
     def name(self):
@@ -61,30 +63,36 @@ class DealabsSensor(Entity):
     @property
     def device_state_attributes(self):
         """Return the state attributes."""
-        attrs = {
-            "data": json.dumps([ob.__dict__ for ob in self.data])
-        }
-        return attrs
+        return self.attr
 
     def update(self):
-        _LOGGER.error("updatte")
         join_url = URL + self.token;
         rqt = requests.request(method='GET', url=join_url, headers=headers).text.encode('utf8')
         tree = ET.fromstring(rqt)
         deals = []
         nb = 0
         for child in tree.findall('./channel/item'):
-            d = Deal(child.find('category').text, child.find('{http://www.pepper.com/rss}merchant').attrib.get('name'),
-                     child.find('{http://www.pepper.com/rss}merchant').attrib.get('price'),
+
+            try:
+                merchant = child.find('{http://www.pepper.com/rss}merchant').attrib.get('name')
+            except:
+                merchant = "null"
+            try:
+                price = child.find('{http://www.pepper.com/rss}merchant').attrib.get('price')
+            except:
+                price = "null"
+            d = Deal(child.find('category').text, merchant,
+                     price,
                      self.extractTitle(child.find('title').text),
-                     child.find('description').text, child.find('link').text, child.find('pubDate').text)
-            deals.append(d)
+                     "", child.find('link').text, child.find('pubDate').text)
+            self.attr["Alert_" + str(nb)] = json.dumps(d.__dict__)
+            _LOGGER.info(self.attr)
             nb += 1
-        self.data = deals
         self._state = nb
 
-    def extractTitle(self,str):
+    def extractTitle(self, str):
         return str.split('<strong>')[0]
+
 
 class Deal(Entity):
     """Representation of a Sensor."""
