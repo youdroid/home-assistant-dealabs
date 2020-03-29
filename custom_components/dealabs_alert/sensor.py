@@ -14,11 +14,11 @@ _LOGGER = logging.getLogger(__name__)
 
 ATTR_TITLE: "Title"
 ATTR_CATEGORY: "Category"
-ATTR_MERCHANT: "Mercahnt"
+ATTR_MERCHANT: "Merchant"
 ATTR_PRICE: "Price"
 ATTR_DESCRIPTION: "Description"
 ATTR_LINK: "Link"
-ATTR_PUBLICATION_DAT: "Date of publication"
+ATTR_PUBLICATION_DAT: "Publication date"
 
 headers = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36\''
@@ -48,7 +48,7 @@ class DealabsSensor(Entity):
     @property
     def name(self):
         """Return the name of the sensor."""
-        return "Alertes Dealabas"
+        return "dealabs"
 
     @property
     def state(self):
