@@ -80,7 +80,6 @@ class DealabsSensor(Entity):
                      price,
                      self.extractTitle(child.find('title').text), child.find('link').text, child.find('pubDate').text, image)
             self.attr["Alert_" + str(nb)] = json.dumps(d.__dict__)
-            _LOGGER.info(self.attr)
             nb += 1
         self._state = nb
 
