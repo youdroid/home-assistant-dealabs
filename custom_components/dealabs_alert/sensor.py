@@ -12,14 +12,6 @@ from homeassistant.const import CONF_TOKEN
 
 _LOGGER = logging.getLogger(__name__)
 
-ATTR_TITLE: "Title"
-ATTR_CATEGORY: "Category"
-ATTR_MERCHANT: "Merchant"
-ATTR_PRICE: "Price"
-ATTR_DESCRIPTION: "Description"
-ATTR_LINK: "Link"
-ATTR_PUBLICATION_DAT: "Publication date"
-
 headers = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36\''
 }
@@ -81,10 +73,12 @@ class DealabsSensor(Entity):
                 price = child.find('{http://www.pepper.com/rss}merchant').attrib.get('price')
             except:
                 price = "null"
+
+            image = child.find('{http://search.yahoo.com/mrss/}content').attrib.get('url')
+
             d = Deal(child.find('category').text, merchant,
                      price,
-                     self.extractTitle(child.find('title').text),
-                     "", child.find('link').text, child.find('pubDate').text)
+                     self.extractTitle(child.find('title').text), child.find('link').text, child.find('pubDate').text, image)
             self.attr["Alert_" + str(nb)] = json.dumps(d.__dict__)
             _LOGGER.info(self.attr)
             nb += 1
@@ -97,11 +91,11 @@ class DealabsSensor(Entity):
 class Deal(Entity):
     """Representation of a Sensor."""
 
-    def __init__(self, category, merchant, price, title, description, link, pubDate):
+    def __init__(self, category, merchant, price, title, link, pubDate, image):
         self.category = category
         self.merchant = merchant
         self.price = price
         self.title = title
-        self.description = description
         self.link = link
         self.pubDate = pubDate
+        self.image = image
